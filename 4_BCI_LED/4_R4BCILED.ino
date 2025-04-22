@@ -1,3 +1,7 @@
+//This code is designed to work specifically on:
+//  - Arduino UNO R4 Minima
+//  - Arduino UNO R4 WiFi
+
 // BCI LED - BioAmp EXG Pill
 // https://github.com/upsidedownlabs/BioAmp-EXG-Pill
 
@@ -172,7 +176,7 @@ void processFFT() {
   // Apply smoothing
   smoothBandpower(&rawBandpower, &smoothedPowers);
 
-  if(((smoothedPowers.beta / smoothedPowers.total + EPS) * 100)>20)
+  if(((smoothedPowers.beta / (smoothedPowers.total + EPS)) * 100)>20)
   {
     digitalWrite(LED_BUILTIN, HIGH);
   } else {
@@ -184,31 +188,31 @@ void processFFT() {
   Serial.print("Delta");
   // Serial.print(smoothedPowers.delta);
   Serial.print(" (");
-  Serial.print((smoothedPowers.delta / smoothedPowers.total + EPS) * 100);
+  Serial.print((smoothedPowers.delta / (smoothedPowers.total + EPS)) * 100);
   Serial.println("%)");
   
   Serial.print("Theta");
   // Serial.print(smoothedPowers.theta);
   Serial.print(" (");
-  Serial.print((smoothedPowers.theta / smoothedPowers.total + EPS) * 100);
+  Serial.print((smoothedPowers.theta / (smoothedPowers.total + EPS)) * 100);
   Serial.println("%)");
   
   Serial.print("Alpha");
   // Serial.print(smoothedPowers.alpha);
   Serial.print(" (");
-  Serial.print((smoothedPowers.alpha / smoothedPowers.total + EPS) * 100);
+  Serial.print((smoothedPowers.alpha / (smoothedPowers.total + EPS)) * 100);
   Serial.println("%)");
   
   Serial.print("Beta");
   // Serial.print(smoothedPowers.beta);
   Serial.print(" (");
-  Serial.print((smoothedPowers.beta / smoothedPowers.total + EPS) * 100);
+  Serial.print((smoothedPowers.beta / (smoothedPowers.total + EPS)) * 100);
   Serial.println("%)");
   
   Serial.print("Gamma");
   // Serial.print(smoothedPowers.gamma);
   Serial.print(" (");
-  Serial.print((smoothedPowers.gamma / smoothedPowers.total + EPS) * 100);
+  Serial.print((smoothedPowers.gamma / (smoothedPowers.total + EPS)) * 100);
   Serial.println("%)");
   
   // Serial.print("Total Power: ");

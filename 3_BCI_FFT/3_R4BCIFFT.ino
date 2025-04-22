@@ -1,4 +1,8 @@
-// BCI Toggle - BioAmp EXG Pill
+//This code is designed to work specifically on:
+//  - Arduino UNO R4 Minima
+//  - Arduino UNO R4 WiFi
+
+// BCI FFT - BioAmp EXG Pill
 // https://github.com/upsidedownlabs/BioAmp-EXG-Pill
 
 // Upside Down Labs invests time and resources providing this open source code,
@@ -48,7 +52,8 @@
 
 // Smoothing factor (0.0 to 1.0) - Lower values = more smoothing
 #define SMOOTHING_FACTOR 0.63
-const float EPS = 1e-6f;          // small guard value against divide-by-zero
+const float EPS = 1e-6f;           // small guard value against divide-by-zero
+
 
 // Structure to hold bandpower results
 typedef struct {
@@ -71,30 +76,6 @@ typedef struct {
 } SmoothedBandpower;
 
 SmoothedBandpower smoothedPowers = {0}; // Global smoothed values
-
-
-//–– Global variables to hold timer state
-unsigned long timerStart = 0;
-bool     timerRunning = false;
-
-//–– Call this to start (or restart) the timer
-void startTimer() {
-  timerStart    = millis();   // remember the current time
-  timerRunning  = true;
-}
-
-//–– Call this to stop the timer (optional)
-void stopTimer() {
-  timerRunning = false;
-}
-
-bool ledState = false;  // false = OFF, true = ON
-
-//–– Toggle LED both in hardware and in our state variable
-void toggleLED() {
-  ledState = !ledState;  // flip the Boolean
-  digitalWrite(LED_BUILTIN, ledState ? HIGH : LOW);
-}
 
 // --- Filter Functions ---
 // Notch filter to remove 48-52 Hz interference
@@ -121,7 +102,6 @@ float Notch(float input) {
 float EEGFilter(float input) {
   float output = input;
   {
-
     static float z1, z2;
     float x = output - -1.22465158*z1 - 0.45044543*z2;
     output = 0.05644846*x + 0.11289692*z1 + 0.05644846*z2;
@@ -197,61 +177,31 @@ void processFFT() {
   // Apply smoothing
   smoothBandpower(&rawBandpower, &smoothedPowers);
 
-  // check if beta% > 20
-bool betaAbove = ((smoothedPowers.beta / smoothedPowers.total + EPS) * 100) > 20;
-
-if (betaAbove) {
-  // 1) just went above threshold → start timing
-  if (!timerRunning) {
-    startTimer();
-  }
-  // 2) already timing → has 4 s elapsed?
-  else if ((millis() - timerStart) >= 4000UL) {
-    toggleLED();    // flip LED
-    stopTimer();    // reset for next detection
-  }
-}
-else {
-  // dropped below before 4 s → cancel timing
-  if (timerRunning) {
-    stopTimer();
-  }
-}
-
-  // Print results
-  // Serial.println("Smoothed Bandpower Results:");
   Serial.print("Delta");
-  // Serial.print(smoothedPowers.delta);
   Serial.print(" (");
-  Serial.print((smoothedPowers.delta / smoothedPowers. + EPS) * 100);
+  Serial.print((smoothedPowers.delta / (smoothedPowers.total + EPS)) * 100);
   Serial.println("%)");
   
   Serial.print("Theta");
-  // Serial.print(smoothedPowers.theta);
   Serial.print(" (");
-  Serial.print((smoothedPowers.theta / smoothedPowers.total + EPS) * 100);
+  Serial.print((smoothedPowers.theta / (smoothedPowers.total + EPS)) * 100);
   Serial.println("%)");
   
   Serial.print("Alpha");
-  // Serial.print(smoothedPowers.alpha);
   Serial.print(" (");
-  Serial.print((smoothedPowers.alpha / smoothedPowers.total + EPS) * 100);
+  Serial.print((smoothedPowers.alpha / (smoothedPowers.total + EPS)) * 100);
   Serial.println("%)");
   
   Serial.print("Beta");
-  // Serial.print(smoothedPowers.beta);
   Serial.print(" (");
-  Serial.print((smoothedPowers.beta / smoothedPowers.total + EPS) * 100);
+  Serial.print((smoothedPowers.beta / (smoothedPowers.total + EPS)) * 100);
   Serial.println("%)");
   
   Serial.print("Gamma");
-  // Serial.print(smoothedPowers.gamma);
   Serial.print(" (");
-  Serial.print((smoothedPowers.gamma / smoothedPowers.total + EPS) * 100);
+  Serial.print((smoothedPowers.gamma / (smoothedPowers.total + EPS)) * 100);
   Serial.println("%)");
   
-  // Serial.print("Total Power: ");
-  // Serial.println(smoothedPowers.total);
   Serial.println();
 }
 
@@ -261,7 +211,6 @@ void setup() {
 
   pinMode(INPUT_PIN, INPUT);
   pinMode(LED_BUILTIN, OUTPUT);
-  digitalWrite(LED_BUILTIN, LOW);
   arm_rfft_fast_init_f32(&S, FFT_SIZE);
 }
 

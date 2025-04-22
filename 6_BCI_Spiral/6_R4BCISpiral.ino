@@ -1,4 +1,7 @@
-// BCI FFT - BioAmp EXG Pill
+//This code is designed to work specifically on:
+//  - Arduino UNO R4 WiFi
+
+// BCI Spiral - BioAmp EXG Pill
 // https://github.com/upsidedownlabs/BioAmp-EXG-Pill
 
 // Upside Down Labs invests time and resources providing this open source code,
@@ -28,11 +31,13 @@
 
 #include "arm_math.h"
 #include <math.h>
+#include "spiralAnimation.h"
 
 #define SAMPLE_RATE   512         // 500 samples per second
 #define FFT_SIZE      256         // FFT resolution: 256 samples
 #define BAUD_RATE     115200
 #define INPUT_PIN     A0
+#define WARMUP_PERIOD_MS 3000     // Ignore first 5 seconds of data
 
 // EEG Frequency Bands
 #define DELTA_LOW     0.5
@@ -48,8 +53,6 @@
 
 // Smoothing factor (0.0 to 1.0) - Lower values = more smoothing
 #define SMOOTHING_FACTOR 0.63
-const float EPS = 1e-6f;           // small guard value against divide-by-zero
-
 
 // Structure to hold bandpower results
 typedef struct {
@@ -110,6 +113,7 @@ float EEGFilter(float input) {
 // --- FFT Setup ---
 float inputBuffer[FFT_SIZE];
 float fftOutputBuffer[FFT_SIZE];
+float fftMagnitudes[FFT_SIZE / 2];
 float powerSpectrum[FFT_SIZE / 2];
 
 arm_rfft_fast_instance_f32 S;
@@ -151,6 +155,14 @@ BandpowerResults calculateBandpower(float* powerSpectrum, float binResolution, u
   return results;
 }
 
+enum SpiralDir { NONE=0, FORWARD, BACKWARD };
+volatile SpiralDir spiralDir = NONE;
+
+// remember the last time we saw beta > threshold
+static unsigned long lastBetaDetected = 0;
+static bool warmupComplete = false;
+static unsigned long startTime = 0;
+
 // Process FFT and calculate bandpower
 void processFFT() {
   // Compute FFT
@@ -161,6 +173,7 @@ void processFFT() {
   for (uint16_t i = 0; i < halfSize; i++) {
     float real = fftOutputBuffer[2 * i];
     float imag = fftOutputBuffer[2 * i + 1];
+    fftMagnitudes[i] = sqrtf(real * real + imag * imag);
     powerSpectrum[i] = real * real + imag * imag;
   }
 
@@ -173,29 +186,38 @@ void processFFT() {
   // Apply smoothing
   smoothBandpower(&rawBandpower, &smoothedPowers);
 
+  // Only check for beta waves after warmup period
+  if (warmupComplete) {
+    bool betaAbove = ((smoothedPowers.beta / (smoothedPowers.total)) * 100) > 20;
+    if (betaAbove) {
+      lastBetaDetected = millis();
+    }
+  }
+
+  // Print results
   Serial.print("Delta");
   Serial.print(" (");
-  Serial.print((smoothedPowers.delta / smoothedPowers.total + EPS) * 100);
+  Serial.print((smoothedPowers.delta / (smoothedPowers.total)) * 100);
   Serial.println("%)");
   
   Serial.print("Theta");
   Serial.print(" (");
-  Serial.print((smoothedPowers.theta / smoothedPowers.total + EPS) * 100);
+  Serial.print((smoothedPowers.theta / (smoothedPowers.total)) * 100);
   Serial.println("%)");
   
   Serial.print("Alpha");
   Serial.print(" (");
-  Serial.print((smoothedPowers.alpha / smoothedPowers.total + EPS) * 100);
+  Serial.print((smoothedPowers.alpha / (smoothedPowers.total)) * 100);
   Serial.println("%)");
   
   Serial.print("Beta");
   Serial.print(" (");
-  Serial.print((smoothedPowers.beta / smoothedPowers.total + EPS) * 100);
+  Serial.print((smoothedPowers.beta / (smoothedPowers.total)) * 100);
   Serial.println("%)");
   
   Serial.print("Gamma");
   Serial.print(" (");
-  Serial.print((smoothedPowers.gamma / smoothedPowers.total + EPS) * 100);
+  Serial.print((smoothedPowers.gamma / (smoothedPowers.total)) * 100);
   Serial.println("%)");
   
   Serial.println();
@@ -207,7 +229,13 @@ void setup() {
 
   pinMode(INPUT_PIN, INPUT);
   pinMode(LED_BUILTIN, OUTPUT);
+  SpiralAnimation::init();
+
   arm_rfft_fast_init_f32(&S, FFT_SIZE);
+  
+  // Initialize timing variables
+  startTime = millis();
+  lastBetaDetected = millis();
 }
 
 void loop() {
@@ -215,6 +243,12 @@ void loop() {
   unsigned long currentMicros = micros();
   unsigned long interval = currentMicros - lastMicros;
   lastMicros = currentMicros;
+
+  // Check if warmup period is complete
+  if (!warmupComplete && (millis() - startTime > WARMUP_PERIOD_MS)) {
+    warmupComplete = true;
+    Serial.println("Warmup complete - now detecting beta waves");
+  }
 
   static long timer = 0;
   timer -= interval;
@@ -236,5 +270,29 @@ void loop() {
     processFFT();
     sampleIndex = 0;
     bufferReady = false;
+  }
+
+  // drive the spiral animation forward/backward
+  static unsigned long lastStep = 0;
+  const unsigned long FORWARD_INTERVAL  = 100;   // Fast forward
+  const unsigned long BACKWARD_INTERVAL = 200;   // Slower backward
+
+  // decide direction
+  if (!warmupComplete) {
+    spiralDir = BACKWARD;  // Force backward during warmup
+  } else {
+    digitalWrite(LED_BUILTIN, HIGH);
+    unsigned long since = millis() - lastBetaDetected;
+    spiralDir = (since < 1000UL) ? FORWARD : BACKWARD;
+  }
+
+  if (millis() - lastStep >= (spiralDir == FORWARD ? FORWARD_INTERVAL : BACKWARD_INTERVAL)) {
+    if (spiralDir == FORWARD) {
+      SpiralAnimation::stepForward();
+    }
+    else {
+      SpiralAnimation::stepBackward();
+    }
+    lastStep = millis();
   }
 }
