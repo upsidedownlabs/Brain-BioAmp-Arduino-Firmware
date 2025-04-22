@@ -16,25 +16,25 @@ Firmware for Brain-BioAmp hardware from Upside Down Labs
 
     A band-pass filter for EEG signals between 0,5 Hz and 44.5 Hz 
 
-    <img src="2_EEGFilter/EEG_Filter.png" height="300" width="400">
+    <img src="2_EEG_Filter/EEG_Filter.png" height="300" width="400">
 
 2. **BCI FFT**
 
     Shows real-time EEG bandpower (Delta, Theta, Alpha, Beta, Gamma) on Arduino Serial Monitor
 
-    <img src="3_R4BCIFFT/BCI_FFT.png" height="360" width="640">
+    <img src="3_BCI_FFT/BCI_FFT.png" height="360" width="640">
 
 3. **BCI LED**
 
     Turns an LED on/off using focus (beta waves)
 
-    <img src="4_R4BCILED/BCI_LED.jpg" height="360" width="640">
+    <img src="4_BCI_LED/BCI_LED.jpg" height="360" width="640">
 
 4. **BCI Toggle**
 
     Toggles LED with 4–5 sec focus for brain-controlled switching
 
-    <img src="5_R4BCIToggle/BCI_Toggle.jpg" height="360" width="640">
+    <img src="5_BCI_Toggle/BCI_Toggle.jpg" height="360" width="640">
 
 5. **BCI Spiral Game**
 
