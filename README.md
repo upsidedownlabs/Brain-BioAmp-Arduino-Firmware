@@ -22,22 +22,22 @@ Firmware for Brain-BioAmp hardware from Upside Down Labs
 
     Shows real-time EEG bandpower (Delta, Theta, Alpha, Beta, Gamma) on Arduino Serial Monitor
 
-    <img src="3_R4BCIFFT/R4BCIFFT.png" height="480" width="854">
+    <img src="3_R4BCIFFT/R4BCIFFT.png" height="360" width="640">
 
 3. **BCI LED**
 
     Turns an LED on/off using focus (beta waves)
 
-    <img src="4_R4BCILED/R4BCILED.jpg" height="480" width="854">
+    <img src="4_R4BCILED/R4BCILED.jpg" height="360" width="640">
 
 4. **BCI Toggle**
 
     Toggles LED with 4–5 sec focus for brain-controlled switching
 
-    <img src="5_R4BCIToggle/R4BCIToggle.jpg" height="480" width="854">
+    <img src="5_R4BCIToggle/R4BCIToggle.jpg" height="360" width="640">
 
 5. **BCI Spiral Game**
 
     LED spiral grows with focus, shrinks when distracted—EEG-based game 
 
-    <img src="6_R4BCISpiral/R4BCISpiral.jpg" height="480" width="854">
+    <img src="6_R4BCISpiral/R4BCISpiral.jpg" height="360" width="640">
