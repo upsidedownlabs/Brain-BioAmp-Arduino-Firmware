@@ -53,6 +53,7 @@
 
 // Smoothing factor (0.0 to 1.0) - Lower values = more smoothing
 #define SMOOTHING_FACTOR 0.63
+const float EPS = 1e-6f;          // small guard value against divide-by-zero
 
 // Structure to hold bandpower results
 typedef struct {
@@ -155,7 +156,7 @@ BandpowerResults calculateBandpower(float* powerSpectrum, float binResolution, u
   return results;
 }
 
-enum SpiralDir { NONE=0, FORWARD, BACKWARD };
+enum SpiralDir { NONE=0, spiralFORWARD, spiralBACKWARD };
 volatile SpiralDir spiralDir = NONE;
 
 // remember the last time we saw beta > threshold
@@ -188,7 +189,7 @@ void processFFT() {
 
   // Only check for beta waves after warmup period
   if (warmupComplete) {
-    bool betaAbove = ((smoothedPowers.beta / (smoothedPowers.total)) * 100) > 20;
+    bool betaAbove = ((smoothedPowers.beta / (smoothedPowers.total + EPS)) * 100) > 20;
     if (betaAbove) {
       lastBetaDetected = millis();
     }
@@ -197,27 +198,27 @@ void processFFT() {
   // Print results
   Serial.print("Delta");
   Serial.print(" (");
-  Serial.print((smoothedPowers.delta / (smoothedPowers.total)) * 100);
+  Serial.print((smoothedPowers.delta / (smoothedPowers.total + EPS)) * 100);
   Serial.println("%)");
   
   Serial.print("Theta");
   Serial.print(" (");
-  Serial.print((smoothedPowers.theta / (smoothedPowers.total)) * 100);
+  Serial.print((smoothedPowers.theta / (smoothedPowers.total + EPS)) * 100);
   Serial.println("%)");
   
   Serial.print("Alpha");
   Serial.print(" (");
-  Serial.print((smoothedPowers.alpha / (smoothedPowers.total)) * 100);
+  Serial.print((smoothedPowers.alpha / (smoothedPowers.total + EPS)) * 100);
   Serial.println("%)");
   
   Serial.print("Beta");
   Serial.print(" (");
-  Serial.print((smoothedPowers.beta / (smoothedPowers.total)) * 100);
+  Serial.print((smoothedPowers.beta / (smoothedPowers.total + EPS)) * 100);
   Serial.println("%)");
   
   Serial.print("Gamma");
   Serial.print(" (");
-  Serial.print((smoothedPowers.gamma / (smoothedPowers.total)) * 100);
+  Serial.print((smoothedPowers.gamma / (smoothedPowers.total + EPS)) * 100);
   Serial.println("%)");
   
   Serial.println();
@@ -279,15 +280,15 @@ void loop() {
 
   // decide direction
   if (!warmupComplete) {
-    spiralDir = BACKWARD;  // Force backward during warmup
+    spiralDir = spiralBACKWARD;  // Force backward during warmup
   } else {
     digitalWrite(LED_BUILTIN, HIGH);
     unsigned long since = millis() - lastBetaDetected;
-    spiralDir = (since < 1000UL) ? FORWARD : BACKWARD;
+    spiralDir = (since < 1000UL) ? spiralFORWARD : spiralBACKWARD;
   }
 
-  if (millis() - lastStep >= (spiralDir == FORWARD ? FORWARD_INTERVAL : BACKWARD_INTERVAL)) {
-    if (spiralDir == FORWARD) {
+  if (millis() - lastStep >= (spiralDir == spiralFORWARD ? FORWARD_INTERVAL : BACKWARD_INTERVAL)) {
+    if (spiralDir == spiralFORWARD) {
       SpiralAnimation::stepForward();
     }
     else {

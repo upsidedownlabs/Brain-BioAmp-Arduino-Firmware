@@ -42,16 +42,16 @@ public:
 
 private:
   // Underlying matrix driver
-  static ArduinoLEDMatrix matrix;
+  inline static ArduinoLEDMatrix matrix{};
 
   // 2D frame buffer: 0=off, 1=on
-  static uint8_t frame[SP_ROWS][SP_COLS];
+  inline static uint8_t frame[SP_ROWS][SP_COLS]{};
 
   // Precomputed spiral sequence
-  static SPA_Point spiral[SP_NUM];
+  inline static SPA_Point spiral[SP_NUM]{};
 
   // Current position in spiral[]
-  static int currentIndex;
+  inline static uint16_t currentIndex=0;
 
   // Build a clockwise spiral of (x,y)
   static void buildSpiral() {
@@ -77,9 +77,10 @@ private:
 };
 
 // Static member definitions
+#include "spiralAnimation.h"
 ArduinoLEDMatrix     SpiralAnimation::matrix;
 uint8_t              SpiralAnimation::frame[SP_ROWS][SP_COLS] = {{0}};
 SPA_Point            SpiralAnimation::spiral[SP_NUM];
-int                   SpiralAnimation::currentIndex = 0;
+int                  SpiralAnimation::currentIndex = 0;
 
 #endif // SPIRAL_ANIMATION_H
