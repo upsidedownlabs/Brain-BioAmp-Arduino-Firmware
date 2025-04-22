@@ -40,4 +40,4 @@ Firmware for Brain-BioAmp hardware from Upside Down Labs
 
     LED spiral grows with focus, shrinks when distracted—EEG-based game 
 
-    <img src="6_R4BCISpiral/BCI_Spiral.jpg" height="360" width="640">
+    <img src="6_BCI_Spiral/BCI_Spiral.jpg" height="360" width="640">
