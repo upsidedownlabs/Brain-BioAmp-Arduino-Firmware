@@ -1,3 +1,31 @@
+// BCI FFT - BioAmp EXG Pill
+// https://github.com/upsidedownlabs/BioAmp-EXG-Pill
+
+// Upside Down Labs invests time and resources providing this open source code,
+// please support Upside Down Labs and open-source hardware by purchasing
+// products from Upside Down Labs!
+
+// Copyright (c) 2024 - 2025 Krishnanshu Mittal - karan4g79@gmail.com
+// Copyright (c) 2024 - 2025 Upside Down Labs - contact@upsidedownlabs.tech
+
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 #include "arm_math.h"
 #include <math.h>
 
@@ -20,6 +48,8 @@
 
 // Smoothing factor (0.0 to 1.0) - Lower values = more smoothing
 #define SMOOTHING_FACTOR 0.63
+const float EPS = 1e-6f;           // small guard value against divide-by-zero
+
 
 // Structure to hold bandpower results
 typedef struct {
@@ -80,7 +110,6 @@ float EEGFilter(float input) {
 // --- FFT Setup ---
 float inputBuffer[FFT_SIZE];
 float fftOutputBuffer[FFT_SIZE];
-float fftMagnitudes[FFT_SIZE / 2];
 float powerSpectrum[FFT_SIZE / 2];
 
 arm_rfft_fast_instance_f32 S;
@@ -132,7 +161,6 @@ void processFFT() {
   for (uint16_t i = 0; i < halfSize; i++) {
     float real = fftOutputBuffer[2 * i];
     float imag = fftOutputBuffer[2 * i + 1];
-    fftMagnitudes[i] = sqrtf(real * real + imag * imag);
     powerSpectrum[i] = real * real + imag * imag;
   }
 
@@ -147,27 +175,27 @@ void processFFT() {
 
   Serial.print("Delta");
   Serial.print(" (");
-  Serial.print((smoothedPowers.delta / smoothedPowers.total) * 100);
+  Serial.print((smoothedPowers.delta / smoothedPowers.total + EPS) * 100);
   Serial.println("%)");
   
   Serial.print("Theta");
   Serial.print(" (");
-  Serial.print((smoothedPowers.theta / smoothedPowers.total) * 100);
+  Serial.print((smoothedPowers.theta / smoothedPowers.total + EPS) * 100);
   Serial.println("%)");
   
   Serial.print("Alpha");
   Serial.print(" (");
-  Serial.print((smoothedPowers.alpha / smoothedPowers.total) * 100);
+  Serial.print((smoothedPowers.alpha / smoothedPowers.total + EPS) * 100);
   Serial.println("%)");
   
   Serial.print("Beta");
   Serial.print(" (");
-  Serial.print((smoothedPowers.beta / smoothedPowers.total) * 100);
+  Serial.print((smoothedPowers.beta / smoothedPowers.total + EPS) * 100);
   Serial.println("%)");
   
   Serial.print("Gamma");
   Serial.print(" (");
-  Serial.print((smoothedPowers.gamma / smoothedPowers.total) * 100);
+  Serial.print((smoothedPowers.gamma / smoothedPowers.total + EPS) * 100);
   Serial.println("%)");
   
   Serial.println();
