@@ -1,6 +1,5 @@
 #ifndef SPIRAL_ANIMATION_H
-#define SPIRAL_ANATION_H
-
+#define SPIRAL_ANIMATION_H
 #include "Arduino_LED_Matrix.h"
 
 // Matrix dimensions
