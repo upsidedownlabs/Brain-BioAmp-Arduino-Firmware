@@ -5,15 +5,20 @@
 // Matrix dimensions
 static constexpr uint8_t SP_ROWS = 8;
 static constexpr uint8_t SP_COLS = 12;
-static constexpr uint16_t SP_NUM  = SP_ROWS * SP_COLS;
+static constexpr uint16_t SP_NUM = SP_ROWS * SP_COLS;
 
 // Simple point struct
-struct SPA_Point { uint8_t x, y; };
+struct SPA_Point
+{
+  uint8_t x, y;
+};
 
-class SpiralAnimation {
+class SpiralAnimation
+{
 public:
   // Call once in setup()
-  static void init() {
+  static void init()
+  {
     matrix.begin();
     matrix.clear();
     currentIndex = 0;
@@ -21,8 +26,10 @@ public:
   }
 
   // Step one LED ON in spiral order
-  static void stepForward() {
-    if (currentIndex < SP_NUM) {
+  static void stepForward()
+  {
+    if (currentIndex < SP_NUM)
+    {
       auto &p = spiral[currentIndex];
       frame[p.y][p.x] = 1;
       matrix.renderBitmap(frame, SP_ROWS, SP_COLS);
@@ -31,8 +38,10 @@ public:
   }
 
   // Step one LED OFF in reverse spiral
-  static void stepBackward() {
-    if (currentIndex > 0) {
+  static void stepBackward()
+  {
+    if (currentIndex > 0)
+    {
       currentIndex--;
       auto &p = spiral[currentIndex];
       frame[p.y][p.x] = 0;
@@ -51,36 +60,37 @@ private:
   inline static SPA_Point spiral[SP_NUM]{};
 
   // Current position in spiral[]
-  inline static uint16_t currentIndex=0;
+  inline static uint16_t currentIndex = 0;
 
   // Build a clockwise spiral of (x,y)
-  static void buildSpiral() {
-    int top    = 0, bottom = SP_ROWS - 1;
-    int left   = 0, right  = SP_COLS - 1;
-    int idx    = 0;
+  static void buildSpiral()
+  {
+    int top = 0, bottom = SP_ROWS - 1;
+    int left = 0, right = SP_COLS - 1;
+    int idx = 0;
 
-    while (top <= bottom && left <= right) {
-      for (int x = left;  x <= right;  x++) spiral[idx++] = { (uint8_t)x, (uint8_t)top };
+    while (top <= bottom && left <= right)
+    {
+      for (int x = left; x <= right; x++)
+        spiral[idx++] = {(uint8_t)x, (uint8_t)top};
       top++;
-      for (int y = top;   y <= bottom; y++) spiral[idx++] = { (uint8_t)right, (uint8_t)y };
+      for (int y = top; y <= bottom; y++)
+        spiral[idx++] = {(uint8_t)right, (uint8_t)y};
       right--;
-      if (top <= bottom) {
-        for (int x = right; x >= left;  x--) spiral[idx++] = { (uint8_t)x, (uint8_t)bottom };
+      if (top <= bottom)
+      {
+        for (int x = right; x >= left; x--)
+          spiral[idx++] = {(uint8_t)x, (uint8_t)bottom};
         bottom--;
       }
-      if (left <= right) {
-        for (int y = bottom; y >= top;   y--) spiral[idx++] = { (uint8_t)left,  (uint8_t)y };
+      if (left <= right)
+      {
+        for (int y = bottom; y >= top; y--)
+          spiral[idx++] = {(uint8_t)left, (uint8_t)y};
         left++;
       }
     }
   }
 };
-
-// Static member definitions
-#include "spiralAnimation.h"
-ArduinoLEDMatrix     SpiralAnimation::matrix;
-uint8_t              SpiralAnimation::frame[SP_ROWS][SP_COLS] = {{0}};
-SPA_Point            SpiralAnimation::spiral[SP_NUM];
-int                  SpiralAnimation::currentIndex = 0;
 
 #endif // SPIRAL_ANIMATION_H

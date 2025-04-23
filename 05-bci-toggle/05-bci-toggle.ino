@@ -1,7 +1,7 @@
 
 // This code is designed to work specifically on:
-// 1.Arduino UNO R4 Minima
-// 2.Arduino UNO R4 WiFi
+// 1. Arduino UNO R4 Minima
+// 2. Arduino UNO R4 WiFi
 
 // BCI Toggle - BioAmp EXG Pill
 // https://github.com/upsidedownlabs/BioAmp-EXG-Pill
@@ -34,29 +34,30 @@
 #include "arm_math.h"
 #include <math.h>
 
-#define SAMPLE_RATE   512         // 500 samples per second
-#define FFT_SIZE      256         // FFT resolution: 256 samples
-#define BAUD_RATE     115200
-#define INPUT_PIN     A0
+#define SAMPLE_RATE 512 // 500 samples per second
+#define FFT_SIZE 256    // FFT resolution: 256 samples
+#define BAUD_RATE 115200
+#define INPUT_PIN A0
 
 // EEG Frequency Bands
-#define DELTA_LOW     0.5
-#define DELTA_HIGH    4.0
-#define THETA_LOW     4.0
-#define THETA_HIGH    8.0
-#define ALPHA_LOW     8.0
-#define ALPHA_HIGH    13.0
-#define BETA_LOW      13.0
-#define BETA_HIGH     30.0
-#define GAMMA_LOW     30.0
-#define GAMMA_HIGH    45.0
+#define DELTA_LOW 0.5
+#define DELTA_HIGH 4.0
+#define THETA_LOW 4.0
+#define THETA_HIGH 8.0
+#define ALPHA_LOW 8.0
+#define ALPHA_HIGH 13.0
+#define BETA_LOW 13.0
+#define BETA_HIGH 30.0
+#define GAMMA_LOW 30.0
+#define GAMMA_HIGH 45.0
 
 // Smoothing factor (0.0 to 1.0) - Lower values = more smoothing
 #define SMOOTHING_FACTOR 0.63
-const float EPS = 1e-6f;          // small guard value against divide-by-zero
+const float EPS = 1e-6f; // small guard value against divide-by-zero
 
 // Structure to hold bandpower results
-typedef struct {
+typedef struct
+{
   float delta;
   float theta;
   float alpha;
@@ -66,7 +67,8 @@ typedef struct {
 } BandpowerResults;
 
 // Structure for smoothed bandpower values
-typedef struct {
+typedef struct
+{
   float delta;
   float theta;
   float alpha;
@@ -77,33 +79,39 @@ typedef struct {
 
 SmoothedBandpower smoothedPowers = {0}; // Global smoothed values
 
-
-//–– Global variables to hold timer state
+// –– Global variables to hold timer state
 unsigned long timerStart = 0;
-bool     timerRunning = false;
+bool timerRunning = false;
 
-//–– Call this to start (or restart) the timer
-void startTimer() {
-  timerStart    = millis();   // remember the current time
-  timerRunning  = true;
+// –– Call this to start (or restart) the timer
+void startTimer()
+{
+  timerStart = millis(); // remember the current time
+  timerRunning = true;
 }
 
-//–– Call this to stop the timer (optional)
-void stopTimer() {
+// –– Call this to stop the timer (optional)
+void stopTimer()
+{
   timerRunning = false;
 }
 
-bool ledState = false;  // false = OFF, true = ON
+bool ledState = false; // false = OFF, true = ON
 
-//–– Toggle LED both in hardware and in our state variable
-void toggleLED() {
-  ledState = !ledState;  // flip the Boolean
+// –– Toggle LED both in hardware and in our state variable
+void toggleLED()
+{
+  ledState = !ledState; // flip the Boolean
   digitalWrite(LED_BUILTIN, ledState ? HIGH : LOW);
 }
 
 // --- Filter Functions ---
-// Notch filter to remove 48-52 Hz interference
-float Notch(float input) {
+// Band-Stop Butterworth IIR digital filter, generated using filter_gen.py.
+// Sampling rate: 500.0 Hz, frequency: [48.0, 52.0] Hz.
+// Filter is order 2, implemented as second-order sections (biquads).
+// Reference: https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.butter.html
+float Notch(float input)
+{
   float output = input;
   {
     static float z1 = 0, z2 = 0;
@@ -122,14 +130,18 @@ float Notch(float input) {
   return output;
 }
 
-// EEG low-pass filter with 45 Hz cutoff
-float EEGFilter(float input) {
+// Low-Pass Butterworth IIR digital filter, generated using filter_gen.py.
+// Sampling rate: 500.0 Hz, frequency: 45.0 Hz.
+// Filter is order 2, implemented as second-order sections (biquads).
+// Reference: https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.butter.html
+float EEGFilter(float input)
+{
   float output = input;
   {
 
     static float z1, z2;
-    float x = output - -1.22465158*z1 - 0.45044543*z2;
-    output = 0.05644846*x + 0.11289692*z1 + 0.05644846*z2;
+    float x = output - -1.22465158 * z1 - 0.45044543 * z2;
+    output = 0.05644846 * x + 0.11289692 * z1 + 0.05644846 * z2;
     z2 = z1;
     z1 = x;
   }
@@ -146,48 +158,62 @@ volatile uint16_t sampleIndex = 0;
 volatile bool bufferReady = false;
 
 // Apply exponential moving average smoothing
-void smoothBandpower(BandpowerResults* raw, SmoothedBandpower* smoothed) {
+void smoothBandpower(BandpowerResults *raw, SmoothedBandpower *smoothed)
+{
   smoothed->delta = SMOOTHING_FACTOR * raw->delta + (1 - SMOOTHING_FACTOR) * smoothed->delta;
   smoothed->theta = SMOOTHING_FACTOR * raw->theta + (1 - SMOOTHING_FACTOR) * smoothed->theta;
   smoothed->alpha = SMOOTHING_FACTOR * raw->alpha + (1 - SMOOTHING_FACTOR) * smoothed->alpha;
-  smoothed->beta  = SMOOTHING_FACTOR * raw->beta  + (1 - SMOOTHING_FACTOR) * smoothed->beta;
+  smoothed->beta = SMOOTHING_FACTOR * raw->beta + (1 - SMOOTHING_FACTOR) * smoothed->beta;
   smoothed->gamma = SMOOTHING_FACTOR * raw->gamma + (1 - SMOOTHING_FACTOR) * smoothed->gamma;
   smoothed->total = SMOOTHING_FACTOR * raw->total + (1 - SMOOTHING_FACTOR) * smoothed->total;
 }
 
 // Calculate bandpower for different frequency bands
-BandpowerResults calculateBandpower(float* powerSpectrum, float binResolution, uint16_t halfSize) {
+BandpowerResults calculateBandpower(float *powerSpectrum, float binResolution, uint16_t halfSize)
+{
   BandpowerResults results = {0};
-  
-  for (uint16_t i = 1; i < halfSize; i++) {
+
+  for (uint16_t i = 1; i < halfSize; i++)
+  {
     float freq = i * binResolution;
     float power = powerSpectrum[i];
     results.total += power;
-    
-    if (freq >= DELTA_LOW && freq < DELTA_HIGH) {
+
+    if (freq >= DELTA_LOW && freq < DELTA_HIGH)
+    {
       results.delta += power;
-    } else if (freq >= THETA_LOW && freq < THETA_HIGH) {
+    }
+    else if (freq >= THETA_LOW && freq < THETA_HIGH)
+    {
       results.theta += power;
-    } else if (freq >= ALPHA_LOW && freq < ALPHA_HIGH) {
+    }
+    else if (freq >= ALPHA_LOW && freq < ALPHA_HIGH)
+    {
       results.alpha += power;
-    } else if (freq >= BETA_LOW && freq < BETA_HIGH) {
+    }
+    else if (freq >= BETA_LOW && freq < BETA_HIGH)
+    {
       results.beta += power;
-    } else if (freq >= GAMMA_LOW && freq < GAMMA_HIGH) {
+    }
+    else if (freq >= GAMMA_LOW && freq < GAMMA_HIGH)
+    {
       results.gamma += power;
     }
   }
-  
+
   return results;
 }
 
 // Process FFT and calculate bandpower
-void processFFT() {
+void processFFT()
+{
   // Compute FFT
   arm_rfft_fast_f32(&S, inputBuffer, fftOutputBuffer, 0);
 
   // Compute magnitudes and power spectrum
   uint16_t halfSize = FFT_SIZE / 2;
-  for (uint16_t i = 0; i < halfSize; i++) {
+  for (uint16_t i = 0; i < halfSize; i++)
+  {
     float real = fftOutputBuffer[2 * i];
     float imag = fftOutputBuffer[2 * i + 1];
     powerSpectrum[i] = real * real + imag * imag;
@@ -203,66 +229,49 @@ void processFFT() {
   smoothBandpower(&rawBandpower, &smoothedPowers);
 
   // check if beta% > 20
-bool betaAbove = ((smoothedPowers.beta / (smoothedPowers.total + EPS)) * 100) > 20;
+  bool betaAbove = ((smoothedPowers.beta / (smoothedPowers.total + EPS)) * 100) > 20;
 
-if (betaAbove) {
-  // 1) just went above threshold → start timing
-  if (!timerRunning) {
-    startTimer();
+  if (betaAbove)
+  {
+    // 1) just went above threshold → start timing
+    if (!timerRunning)
+    {
+      startTimer();
+    }
+    // 2) already timing → has 4 s elapsed?
+    else if ((millis() - timerStart) >= 4000UL)
+    {
+      toggleLED(); // flip LED
+      stopTimer(); // reset for next detection
+    }
   }
-  // 2) already timing → has 4 s elapsed?
-  else if ((millis() - timerStart) >= 4000UL) {
-    toggleLED();    // flip LED
-    stopTimer();    // reset for next detection
+  else
+  {
+    // dropped below before 4 s → cancel timing
+    if (timerRunning)
+    {
+      stopTimer();
+    }
   }
-}
-else {
-  // dropped below before 4 s → cancel timing
-  if (timerRunning) {
-    stopTimer();
-  }
-}
 
   // Print results
-  // Serial.println("Smoothed Bandpower Results:");
-  Serial.print("Delta");
-  // Serial.print(smoothedPowers.delta);
-  Serial.print(" (");
   Serial.print((smoothedPowers.delta / (smoothedPowers.total + EPS)) * 100);
-  Serial.println("%)");
-  
-  Serial.print("Theta");
-  // Serial.print(smoothedPowers.theta);
-  Serial.print(" (");
+  Serial.print(',');
   Serial.print((smoothedPowers.theta / (smoothedPowers.total + EPS)) * 100);
-  Serial.println("%)");
-  
-  Serial.print("Alpha");
-  // Serial.print(smoothedPowers.alpha);
-  Serial.print(" (");
+  Serial.print(',');
   Serial.print((smoothedPowers.alpha / (smoothedPowers.total + EPS)) * 100);
-  Serial.println("%)");
-  
-  Serial.print("Beta");
-  // Serial.print(smoothedPowers.beta);
-  Serial.print(" (");
+  Serial.print(',');
   Serial.print((smoothedPowers.beta / (smoothedPowers.total + EPS)) * 100);
-  Serial.println("%)");
-  
-  Serial.print("Gamma");
-  // Serial.print(smoothedPowers.gamma);
-  Serial.print(" (");
+  Serial.print(',');
   Serial.print((smoothedPowers.gamma / (smoothedPowers.total + EPS)) * 100);
-  Serial.println("%)");
-  
-  // Serial.print("Total Power: ");
-  // Serial.println(smoothedPowers.total);
   Serial.println();
 }
 
-void setup() {
+void setup()
+{
   Serial.begin(BAUD_RATE);
-  while (!Serial);
+  while (!Serial)
+    ;
 
   pinMode(INPUT_PIN, INPUT);
   pinMode(LED_BUILTIN, OUTPUT);
@@ -270,7 +279,8 @@ void setup() {
   arm_rfft_fast_init_f32(&S, FFT_SIZE);
 }
 
-void loop() {
+void loop()
+{
   static unsigned long lastMicros = 0;
   unsigned long currentMicros = micros();
   unsigned long interval = currentMicros - lastMicros;
@@ -278,21 +288,25 @@ void loop() {
 
   static long timer = 0;
   timer -= interval;
-  if (timer < 0) {
+  if (timer < 0)
+  {
     timer += 1000000 / SAMPLE_RATE;
-    
+
     int rawSample = analogRead(INPUT_PIN);
     float filteredSample = EEGFilter(Notch(rawSample));
-    
-    if (sampleIndex < FFT_SIZE) {
+
+    if (sampleIndex < FFT_SIZE)
+    {
       inputBuffer[sampleIndex++] = filteredSample;
     }
-    if (sampleIndex >= FFT_SIZE) {
+    if (sampleIndex >= FFT_SIZE)
+    {
       bufferReady = true;
     }
   }
 
-  if (bufferReady) {
+  if (bufferReady)
+  {
     processFFT();
     sampleIndex = 0;
     bufferReady = false;
