@@ -1,15 +1,16 @@
-//This code is designed to work specifically on:
-//  - Arduino UNO R4 Minima
-//  - Arduino UNO R4 WiFi
 
-// BCI FFT - BioAmp EXG Pill
+// This code is designed to work specifically on:
+// 1.Arduino UNO R4 Minima
+// 2.Arduino UNO R4 WiFi
+
+// BCI LED - BioAmp EXG Pill
 // https://github.com/upsidedownlabs/BioAmp-EXG-Pill
 
 // Upside Down Labs invests time and resources providing this open source code,
 // please support Upside Down Labs and open-source hardware by purchasing
 // products from Upside Down Labs!
 
-// Copyright (c) 2024 - 2025 Krishnanshu Mittal - karan4g79@gmail.com
+// Copyright (c) 2024 - 2025 Krishnanshu Mittal - krishnanshu@upsidedownlabs.tech
 // Copyright (c) 2024 - 2025 Upside Down Labs - contact@upsidedownlabs.tech
 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -53,7 +54,6 @@
 // Smoothing factor (0.0 to 1.0) - Lower values = more smoothing
 #define SMOOTHING_FACTOR 0.63
 const float EPS = 1e-6f;           // small guard value against divide-by-zero
-
 
 // Structure to hold bandpower results
 typedef struct {
@@ -177,31 +177,47 @@ void processFFT() {
   // Apply smoothing
   smoothBandpower(&rawBandpower, &smoothedPowers);
 
+  if(((smoothedPowers.beta / (smoothedPowers.total + EPS)) * 100)>20)
+  {
+    digitalWrite(LED_BUILTIN, HIGH);
+  } else {
+    digitalWrite(LED_BUILTIN, LOW);
+  }
+
+  // Print results
+  // Serial.println("Smoothed Bandpower Results:");
   Serial.print("Delta");
+  // Serial.print(smoothedPowers.delta);
   Serial.print(" (");
   Serial.print((smoothedPowers.delta / (smoothedPowers.total + EPS)) * 100);
   Serial.println("%)");
   
   Serial.print("Theta");
+  // Serial.print(smoothedPowers.theta);
   Serial.print(" (");
   Serial.print((smoothedPowers.theta / (smoothedPowers.total + EPS)) * 100);
   Serial.println("%)");
   
   Serial.print("Alpha");
+  // Serial.print(smoothedPowers.alpha);
   Serial.print(" (");
   Serial.print((smoothedPowers.alpha / (smoothedPowers.total + EPS)) * 100);
   Serial.println("%)");
   
   Serial.print("Beta");
+  // Serial.print(smoothedPowers.beta);
   Serial.print(" (");
   Serial.print((smoothedPowers.beta / (smoothedPowers.total + EPS)) * 100);
   Serial.println("%)");
   
   Serial.print("Gamma");
+  // Serial.print(smoothedPowers.gamma);
   Serial.print(" (");
   Serial.print((smoothedPowers.gamma / (smoothedPowers.total + EPS)) * 100);
   Serial.println("%)");
   
+  // Serial.print("Total Power: ");
+  // Serial.println(smoothedPowers.total);
   Serial.println();
 }
 
