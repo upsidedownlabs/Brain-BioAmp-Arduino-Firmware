@@ -282,13 +282,15 @@ void processFFT() {
   arm_rfft_fast_f32(&S, inputBuffer, fftOutputBuffer, 0);
 
   // Calculate power spectrum (magnitude squared)
-  int half = FFT_SIZE/2;
-  for(int i=0; i<half; i++){
-    float re = fftOutputBuffer[2*i];
-    float im = fftOutputBuffer[2*i+1];
+  const int half = FFT_SIZE/2;
+  // DC bin (real only)
+  powerSpectrum[0] = fftOutputBuffer[0] * fftOutputBuffer[0];
+  // Bins 1..N/2-1 are interleaved complex pairs
+  for (int i = 1; i < half; i++) {
+    const float re = fftOutputBuffer[2*i];
+    const float im = fftOutputBuffer[2*i + 1];
     powerSpectrum[i] = re*re + im*im;
   }
-
   // detect peak bin (skip i=0)
   int maxIdx = 1;
   float maxP = powerSpectrum[1];
