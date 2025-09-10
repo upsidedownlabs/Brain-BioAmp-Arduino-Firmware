@@ -356,7 +356,9 @@ void loop() {
         writeIndex = (writeIndex + 1) % BUFFER_SIZE;
         samplesAvailable++;
         if (samplesAvailable > BUFFER_SIZE) {
-            samplesAvailable = BUFFER_SIZE; // Prevent overflow
+            // Drop oldest sample
+            samplesAvailable = BUFFER_SIZE;
+            readIndex = (readIndex + 1) % BUFFER_SIZE;
         }
     }
     
