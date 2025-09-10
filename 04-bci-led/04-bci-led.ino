@@ -51,6 +51,9 @@
 #define GAMMA_LOW 30.0
 #define GAMMA_HIGH 45.0
 
+// Update threshold based on calibration
+#define BetaThreshold 10
+
 // Smoothing factor (0.0 to 1.0) - Lower values = more smoothing
 #define SMOOTHING_FACTOR 0.63
 const float EPS = 1e-6f; // small guard value against divide-by-zero
@@ -201,7 +204,7 @@ void processFFT()
   // Apply smoothing
   smoothBandpower(&rawBandpower, &smoothedPowers);
 
-  if (((smoothedPowers.beta / (smoothedPowers.total + EPS)) * 100) > 20)
+  if (((smoothedPowers.beta / (smoothedPowers.total + EPS)) * 100) > BetaThreshold)
   {
     digitalWrite(LED_BUILTIN, HIGH);
   }
@@ -211,14 +214,19 @@ void processFFT()
   }
 
   // Print results
+  Serial.print("Delta: ");
   Serial.print((smoothedPowers.delta / (smoothedPowers.total + EPS)) * 100);
-  Serial.print(',');
+  Serial.print("   ");
+  Serial.print("Theta: ");
   Serial.print((smoothedPowers.theta / (smoothedPowers.total + EPS)) * 100);
-  Serial.print(',');
+  Serial.print("   ");
+  Serial.print("Alpha: ");
   Serial.print((smoothedPowers.alpha / (smoothedPowers.total + EPS)) * 100);
-  Serial.print(',');
+  Serial.print("   ");
+  Serial.print("Beta: ");
   Serial.print((smoothedPowers.beta / (smoothedPowers.total + EPS)) * 100);
-  Serial.print(',');
+  Serial.print("   ");
+  Serial.print("Gamma: ");
   Serial.print((smoothedPowers.gamma / (smoothedPowers.total + EPS)) * 100);
   Serial.println();
 }
@@ -226,8 +234,7 @@ void processFFT()
 void setup()
 {
   Serial.begin(BAUD_RATE);
-  while (!Serial)
-    ;
+  delay(100);
 
   pinMode(INPUT_PIN, INPUT);
   pinMode(LED_BUILTIN, OUTPUT);
