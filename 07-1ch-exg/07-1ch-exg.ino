@@ -31,7 +31,7 @@
 #include "arm_math.h"
 #include <math.h>
 
-#define DEBUG  // Uncomment this line to enable debugging
+// #define DEBUG  // Uncomment this line to enable debugging
 
 // ----------------- USER CONFIGURATION -----------------
 #define SAMPLE_RATE       512          // samples per second
@@ -48,7 +48,7 @@
 #define SAMPLES_PER_SEGMENT (SAMPLE_RATE * SEGMENT_SEC)
 
 // Modify Thresholds while debugging
-const float BETA_THRESHOLD  = 3.0; // adjust based on calibration: typically 50% of max beta power during focused state
+const float BETA_THRESHOLD  = 10.0; // adjust based on calibration: typically 50% of max beta power during focused state
 const float BlinkLowerThreshold = 30.0;
 const float BlinkUpperThreshold = 50.0;
 const float JAW_ON_THRESHOLD  = 25.0; // same as your current threshold
@@ -70,7 +70,7 @@ uint16_t segmentIndex = 0;
 unsigned long lastSegmentTimeMs = 0;
 
 float eegAvg = 0, eogAvg = 0, emgAvg = 0;
-float eegMin = 0, eegMax = 0;
+float eegMin = 0, eegMax = 0;  
 float eogMin = 0, eogMax = 0;
 float emgMin = 0, emgMax = 0;
 bool segmentStatsReady = false;
