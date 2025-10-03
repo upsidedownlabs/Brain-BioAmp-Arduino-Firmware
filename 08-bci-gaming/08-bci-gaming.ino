@@ -34,7 +34,7 @@
 #include <math.h>
 #include "Keyboard.h"
 
-#define SAMPLE_RATE 512 // 500 samples per second
+#define SAMPLE_RATE 500 // 500 samples per second
 #define FFT_SIZE 256    // FFT resolution: 256 samples
 #define BAUD_RATE 115200
 #define INPUT_PIN A0
