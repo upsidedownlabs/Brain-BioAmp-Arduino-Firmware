@@ -10,6 +10,7 @@ Firmware for Brain-BioAmp hardware from Upside Down Labs
 |5 | [R4BCIToggle](05-bci-toggle)| Toggles the LED on/off using sustained focus for 4 seconds. (both R4 Minima and R4 WiFi can be used)|
 |6 | [R4BCISpiral](06-bci-spiral)| Runs the spiral LED game based on focus. (Only R4 WiFi can be used)|
 |7 | [1ChEXG](07-1ch-exg)| Multi-modal biosignal demo: detects focus (EEG), blinks (EOG), and jaw clench (EMG). (Arduino R4 Minima and R4 WiFi)
+|8 | [BCIGaming](08-bci-gaming)| Controls keyboard input for gaming using focus levels via HID. Presses 'W' key when beta waves exceed threshold. (Arduino R4 Minima and R4 WiFi)
 
 ## Examples
 
@@ -50,3 +51,7 @@ Firmware for Brain-BioAmp hardware from Upside Down Labs
 7. **1-Channel EXG Demo**
 
     Multi-modal biosignal detection: focus detection (EEG beta waves), blink patterns (EOG), and jaw clenching (EMG) using ARM CMSIS-DSP
+
+8. **BCI Gaming**
+
+    Brain-controlled gaming using HID keyboard emulation. Automatically presses and holds 'W' key when focus levels (beta waves) exceed 10% threshold, enabling hands-free movement control in games. Uses Arduino R4's built-in USB HID functionality for seamless keyboard input.
