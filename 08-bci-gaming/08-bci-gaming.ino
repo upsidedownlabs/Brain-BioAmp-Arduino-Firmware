@@ -228,8 +228,7 @@ void processFFT()
 void setup()
 {
   Serial.begin(BAUD_RATE);
-  while (!Serial)
-    ;
+  delay(200);
 
   // Initialize Keyboard HID functionality
   Keyboard.begin();
