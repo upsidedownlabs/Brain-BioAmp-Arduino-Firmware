@@ -48,7 +48,7 @@ Connect BioAmp EXG Pill to Arduino UNO R4:
 2. Install CMSIS-DSP library from Library Manager.
 3. Download the firmware from Brain BioAmp Arduino Firmware repository.
 4. Open `08-bci-gaming.ino` in Arduino IDE.
-5. Configure your game keys (default: `w`, `a`, `d`).
+5. Configure your game keys (default: `w`, `a`, `f`).
 6. Select board and COM port, then upload.
 
 ## Calibration
