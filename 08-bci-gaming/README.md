@@ -2,7 +2,7 @@
 
 Control games using your brain signals (EEG) and eye blinks (EOG) with Arduino UNO R4 and BioAmp EXG Pill.
 
-For detaied tutorial, head over to our [Instructables](https://www.instructables.com/Playing-Games-With-Your-Mind-Using-Arduino-Uno-R4/)
+For detailed tutorial, head over to our [Instructables](https://www.instructables.com/Playing-Games-With-Your-Mind-Using-Arduino-Uno-R4/)
 
 ## How it Works
 
