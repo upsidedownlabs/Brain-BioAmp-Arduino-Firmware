@@ -1,33 +1,75 @@
 # BCI Gaming
 
-Brain-controlled gaming using EEG signals to control 'W' key input for forward movement in games.
+Control games using your brain signals (EEG) and eye blinks (EOG) with Arduino UNO R4 and BioAmp EXG Pill.
+
+For detailed tutorial, head over to our [Instructables](https://www.instructables.com/Playing-Games-With-Your-Mind-Using-Arduino-Uno-R4/)
 
 ## How it Works
 
-This sketch processes EEG signals from the BioAmp EXG Pill and automatically presses the 'W' key when beta waves (focus/concentration) exceed the threshold.
+This project combines EEG and EOG signals from a single channel to control games:
+
+- **Focus (EEG)**: When you concentrate, your brain generates beta waves (13-30 Hz). We detect this to control one key continuously.
+- **Double Blink (EOG)**: Two quick blinks trigger a second key press.
+- **Triple Blink (EOG)**: Three rapid blinks trigger a third key press.
+
+The Arduino acts as a USB keyboard, sending keypresses to your computer based on these signals.
+
+## Hardware Required
+
+- BioAmp EXG Pill
+- BioAmp Cable v3
+- 3x Gel Electrodes
+- 3x Jumper Cables
+- Arduino UNO R4 Minima (or WiFi) with USB Cable
+- Nuprep Skin Preparation Gel
+- Laptop (do not connect to charger while recording signals)
+
+## Hardware Connections
+
+Connect BioAmp EXG Pill to Arduino UNO R4:
+- VCC to 5V
+- GND to GND
+- OUT to A0
+
+![Connections](connections.png)
+![Cable Connection](cable-connection.png)
+
+## Electrode Placement
+
+1. Place **IN+** between Fp1 and Fp2 positions on forehead (International 10–20 system).
+2. Place **IN-** on the bony part behind the earlobe (one ear).
+3. Place **REF** on the bony part behind the earlobe (other ear).
+
+![Electrode Placement](electrode-placement.png)
 
 ## Upload Instructions
 
-1. Open Arduino IDE
-2. Load this sketch
-3. Select Arduino UNO R4 board (Install R4 boards from boards manager if not installed)
-4. Install CMSIS_DSP library from the library manager
-5. Upload to your Arduino
+1. Install Arduino IDE and Arduino UNO R4 Boards from Boards Manager.
+2. Install CMSIS-DSP library from Library Manager.
+3. Download the firmware from Brain BioAmp Arduino Firmware repository.
+4. Open `08-bci-gaming.ino` in Arduino IDE.
+5. Configure your game keys (default: `w`, `a`, `f`).
+6. Select board and COM port, then upload.
 
-## Configuration
+## Calibration
 
-If focus detection isn't working properly, modify the beta threshold:
+If detection isn't working properly:
 
-``
-#define BETA_THRESHOLD 10.0 // Change this value
-``
+1. Uncomment `#define DEBUG` to view envelope values.
+2. Focus and note maximum beta value, set `BETA_THRESHOLD` to half of this value.
+3. Blink and observe maximum EOG envelope value.
+4. Set `BLINK_LOWER_THRESHOLD` slightly below and `BLINK_UPPER_THRESHOLD` slightly above this value.
 
+## Controls
 
-- **Increase** (15-20) if 'W' key triggers too easily
-- **Decrease** (5-8) if focus not detected properly
+| Action           | Required Motion                     | Key Press                     |
+|------------------|-------------------------------------|-------------------------------|
+| Focus Detection  | Focus your gaze on a single point   | Focus key pressed and held    |
+| Double Blink     | Blink two times rapidly             | Double Blink key pressed      |
+| Triple Blink     | Blink three times quickly           | Triple Blink key pressed      |
 
-## Gaming
+## Important Notes
 
-Test with **Evo F4 Game**: [https://gamaverse.com/evo-f4-game/](https://gamaverse.com/evo-f4-game/)
-
-Or use any game that uses 'W' key to go forward. Focus your mind to move forward!
+- Laptop should **not** be connected to the charger (prevents 50/60 Hz interference).
+- Maintain ~5 m distance from AC appliances.
+- Beta-wave reading dips during blinks due to eye movement artifacts.
