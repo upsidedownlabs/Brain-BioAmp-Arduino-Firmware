@@ -405,7 +405,7 @@ void loop() {
       secondBlinkTime = nowMs;
       blinkCount = 2;
     }
-    else if (blinkCount == 2 && (nowMs - secondBlinkTime) <= TRIPLE_BLINK_WINDOW_MS) {
+    else if (blinkCount == 2 && (nowMs - firstBlinkTime) <= TRIPLE_BLINK_WINDOW_MS) {
       Serial.print("Triple Blink - "); Serial.print(TRIPLE_BLINK_KEY); Serial.println(" pressed");
       Keyboard.press(TRIPLE_BLINK_KEY);
       delay(50);
@@ -418,7 +418,7 @@ void loop() {
     }
   }
   
-  if (blinkCount == 2 && (nowMs - secondBlinkTime) > TRIPLE_BLINK_WINDOW_MS) {
+  if (blinkCount == 2 && (nowMs - firstBlinkTime) > TRIPLE_BLINK_WINDOW_MS) {
     Serial.print("Double Blink - "); Serial.print(DOUBLE_BLINK_KEY); Serial.println(" pressed");
     Keyboard.press(DOUBLE_BLINK_KEY);
     delay(50);
