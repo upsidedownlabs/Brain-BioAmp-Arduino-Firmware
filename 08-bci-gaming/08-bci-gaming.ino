@@ -36,9 +36,9 @@
 #include "Keyboard.h"
 
 // ================== KEY CONFIGURATION ==================
-#define FOCUS_KEY         'w'    // Key to press when focused
-#define DOUBLE_BLINK_KEY  'a'    // Key to press on double blink
-#define TRIPLE_BLINK_KEY  'f'    // Key to press on triple blink
+#define FOCUS_KEY         KEY_RIGHT_ARROW    // Key to press when focused
+#define DOUBLE_BLINK_KEY  KEY_UP_ARROW       // Key to press on double blink
+#define TRIPLE_BLINK_KEY  KEY_DOWN_ARROW       // Key to press on triple blink
 
 // ================== SYSTEM CONFIGURATION ==================
 #define SAMPLE_RATE       512
@@ -57,15 +57,15 @@
 #define SAMPLES_PER_SEGMENT (SAMPLE_RATE * SEGMENT_SEC)
 
 // ================== DETECTION THRESHOLDS ==================
-const float BETA_THRESHOLD = 10.0;
+const float BETA_THRESHOLD = 2.0;
 const float BLINK_LOWER_THRESHOLD = 30.0;
 const float BLINK_UPPER_THRESHOLD = 50.0;
 
 // ================== TIMING CONFIGURATION ==================
-const unsigned long FOCUS_DEBOUNCE_MS = 2000;
+const unsigned long FOCUS_DEBOUNCE_MS = 100;
 const unsigned long BLINK_DEBOUNCE_MS = 200;
-const unsigned long DOUBLE_BLINK_WINDOW_MS = 600;
-const unsigned long TRIPLE_BLINK_WINDOW_MS = 600;
+const unsigned long DOUBLE_BLINK_WINDOW_MS = 500;
+const unsigned long TRIPLE_BLINK_WINDOW_MS = 700;
 
 // ================== EEG FREQUENCY BANDS ==================
 #define DELTA_LOW    0.5f
