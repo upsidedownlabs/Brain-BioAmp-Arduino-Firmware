@@ -50,6 +50,8 @@
 #define BETA_HIGH 30.0
 #define GAMMA_LOW 30.0
 #define GAMMA_HIGH 45.0
+// Update threshold based on calibration
+#define BetaThreshold 20 
 
 // Smoothing factor (0.0 to 1.0) - Lower values = more smoothing
 #define SMOOTHING_FACTOR 0.63
@@ -228,8 +230,8 @@ void processFFT()
   // Apply smoothing
   smoothBandpower(&rawBandpower, &smoothedPowers);
 
-  // check if beta% > 20
-  bool betaAbove = ((smoothedPowers.beta / (smoothedPowers.total + EPS)) * 100) > 20;
+  // check if beta% > BetaThreshold
+  bool betaAbove = ((smoothedPowers.beta / (smoothedPowers.total + EPS)) * 100) > BetaThreshold;
 
   if (betaAbove)
   {
