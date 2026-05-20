@@ -255,14 +255,19 @@ void processFFT()
   }
 
   // Print results
+  Serial.print("Delta: ");
   Serial.print((smoothedPowers.delta / (smoothedPowers.total + EPS)) * 100);
-  Serial.print(',');
+  Serial.print("   ");
+  Serial.print("Theta: ");
   Serial.print((smoothedPowers.theta / (smoothedPowers.total + EPS)) * 100);
-  Serial.print(',');
+  Serial.print("   ");
+  Serial.print("Alpha: ");
   Serial.print((smoothedPowers.alpha / (smoothedPowers.total + EPS)) * 100);
-  Serial.print(',');
+  Serial.print("   ");
+  Serial.print("Beta: ");
   Serial.print((smoothedPowers.beta / (smoothedPowers.total + EPS)) * 100);
-  Serial.print(',');
+  Serial.print("   ");
+  Serial.print("Gamma: ");
   Serial.print((smoothedPowers.gamma / (smoothedPowers.total + EPS)) * 100);
   Serial.println();
 }
